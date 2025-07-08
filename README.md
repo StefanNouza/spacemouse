@@ -12,9 +12,9 @@ Check-out the [Release Page](https://github.com/AndunHH/spacemouse/releases) for
 
 - [Version 1.0](https://github.com/AndunHH/spacemouse/releases/tag/v1.0.0): [Rotary encoder triggers keys](#rotary-keys)
 - [Version 1.1](https://github.com/AndunHH/spacemouse/releases/tag/v1.1.0): Support of [Hall Effect Sensors](#hall-effect-sensors)
-- [Version 2.0](https://github.com/AndunHH/spacemouse/releases/tag/v2.0.0): Serial Menu, Store parameters in EEPROM, new modifierFunction and Drift-compensation
+- [Version 2.2](https://github.com/AndunHH/spacemouse/releases/tag/v2.0.0): Serial Menu, Store parameters in EEPROM, new modifierFunction and Drift-compensation
 
-## V2.2 ProgMode over Serial, optimised storage of parameters, progmem usage reduced
+## V2.1 ProgMode over Serial, optimized storage of parameters, progmem usage reduced
 This release is about the new ProgMode (V2.1) and about reducing program-memory usage (V2.2):
 
 - developed a "ProgMode" for "Set settings over serial interface and save them"
@@ -25,7 +25,7 @@ This release is about the new ProgMode (V2.1) and about reducing program-memory 
   - but the RAM-usage is gone up...
     ...if someone knows how to set up and use a pointer to a string in ProgMem - that would help...
 - more code-improvements to free up more program memory
-- analysed and optimised the HES code
+- analyzed and optimized the HES code
 - inserted a hysteresis into the exclusive mode to prevent
   immediate switching back and forth between Trans- and Rot-mode
   - new parameter "EXCLUSIVEHYSTERESIS", a value of 0 turns it off (old behavior)
