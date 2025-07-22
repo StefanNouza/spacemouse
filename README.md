@@ -35,6 +35,11 @@ For the next release already to be found in master:
 
 - The [modifier function](#modifier-function) has a html page, where you can visualize the effect of the chosen parameters.
 
+## Upcoming Work
+For the next release already to be found in master:
+
+- The [modifier function](#modifier-function) has a html page, where you can visualize the effect of the chosen parameters.
+
 ## V2.0 Serial Menu, Store parameters in EEPROM, new modifierFunction and Drift-compensation
 This release holds 6 months of development by @StefanNouza. Here is an overview of his great addition to this project:
 
