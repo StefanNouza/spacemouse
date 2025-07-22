@@ -30,6 +30,11 @@ This release is about the new ProgMode (V2.1) and about reducing program-memory 
   immediate switching back and forth between Trans- and Rot-mode
   - new parameter "EXCLUSIVEHYSTERESIS", a value of 0 turns it off (old behavior)
 
+## Upcoming Work
+For the next release already to be found in master:
+
+- The [modifier function](#modifier-function) has a html page, where you can visualize the effect of the chosen parameters.
+
 ## V2.0 Serial Menu, Store parameters in EEPROM, new modifierFunction and Drift-compensation
 This release holds 6 months of development by @StefanNouza. Here is an overview of his great addition to this project:
 
@@ -183,8 +188,9 @@ Other implementations, hardware or mechanic variants are linked below.
 - Support for a [LED ring](#neopixel-led-ring), as supported by the FastLED library. E.g. a neopixel
 
 ### Wanted features, not jet there:
-- Reverse Direction and Speed options in 3dConnexion Software is not working, because our spacemouse is not accepting this settings.
+- Reverse Direction and Speed options in the windows 3dConnexion Software is not working, because our spacemouse does not get / understand this settings.
 - With all features enabled, the pro micro is nearly at the limits of it's flash. Reducing the flash size might be necessary in the future...
+- The html page explaining the modifier function would benefit from an additional plot zooming in on zero.
 
 Purchasing the [electronics](#electronics) and [printing some parts](#printed-parts) is not scope of this repository. We start with the software. Feel free to read some build reports:
 - In the Wiki: [Building an Ergonomouse](https://github.com/AndunHH/spacemouse/wiki/Ergonomouse-Build) based on four joysticks
