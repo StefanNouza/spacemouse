@@ -12,12 +12,17 @@ Check-out the [Release Page](https://github.com/AndunHH/spacemouse/releases) for
 
 - [Version 1.0](https://github.com/AndunHH/spacemouse/releases/tag/v1.0.0): [Rotary encoder triggers keys](#rotary-keys)
 - [Version 1.1](https://github.com/AndunHH/spacemouse/releases/tag/v1.1.0): Support of [Hall Effect Sensors](#hall-effect-sensors)
-- [Version 2.2](https://github.com/AndunHH/spacemouse/releases/tag/v2.0.0): Serial Menu, Store parameters in EEPROM, new modifierFunction and Drift-compensation
+- [Version 2.0](https://github.com/AndunHH/spacemouse/releases/tag/v2.0.0): Serial Menu, Store parameters in EEPROM, new modifierFunction and Drift-compensation
 
-## V2.1 ProgMode over Serial, optimized storage of parameters, progmem usage reduced
-This release is about the new ProgMode (V2.1) and about reducing program-memory usage (V2.2):
+## Upcoming Work
+For the next release already to be found in master:
 
-- developed a "ProgMode" for "Set settings over serial interface and save them"
+- The [modifier function](#modifier-function) has a html page, where you can visualize the effect of the chosen parameters.
+
+### ProgMode over Serial, optimized storage of parameters, progmem usage reduced
+This release is about the new [ProgMode](#progmode) (V2.1) and about reducing program-memory usage (V2.2):
+
+- Stefan Nouza developed a "ProgMode" for "Set settings over serial interface and save them"
 - modified the existing parameter-menu system:
   - restructured the parameter-data to have their descriptions (name/type) and values at one place
   - shorter code
@@ -30,15 +35,6 @@ This release is about the new ProgMode (V2.1) and about reducing program-memory 
   immediate switching back and forth between Trans- and Rot-mode
   - new parameter "EXCLUSIVEHYSTERESIS", a value of 0 turns it off (old behavior)
 
-## Upcoming Work
-For the next release already to be found in master:
-
-- The [modifier function](#modifier-function) has a html page, where you can visualize the effect of the chosen parameters.
-
-## Upcoming Work
-For the next release already to be found in master:
-
-- The [modifier function](#modifier-function) has a html page, where you can visualize the effect of the chosen parameters.
 
 ## V2.0 Serial Menu, Store parameters in EEPROM, new modifierFunction and Drift-compensation
 This release holds 6 months of development by @StefanNouza. Here is an overview of his great addition to this project:
@@ -387,6 +383,107 @@ See [#68](https://github.com/AndunHH/spacemouse/issues/68) for more details.
 In this mouse the joysticks are replaced by springs, magnets and linear hall effect sensors to avoid the mechanical limits of the joystick approach.
 
 To read the eight linear hall effect sensors instead of the joysticks, use the `HALLEFFECT` definition in the config.h. @JarnoBoks provided a complete example: [config_sample_hall_effect.h](spacemouse-keys/config_sample_hall_effect.h) and proceed with the calibration as described in the config file.
+
+## ProgMode
+
+The ProgMode and the parameter-menu can be used alternatively over the same serial interface. The parameter menu has to be at the base level (debug) for the ProgMode to operate. 
+
+The ProgMode-commands are read by userInput() and are stored in a variable "prog" of struct ProgCmd. 
+
+The ProgMode executes on the loop() as executeProgCommand(). It is located there because it must have access to "par" because of the simple nature of the Serial-API and the restricted mem on the controller, I developed a basic interface:
+
+  - a command is started by a '>'-character
+  - the command itself is one character long, e.g. 'w' for "write parameter"
+  - after the command may follow _one_ numerical value, e.g. the value to write
+  - the whole command ends with the CR-character
+  - acknowledgement: every command is parsed, checked and executed. After that an acknowledge is sent:
+    - the acknowledge begins with a '<' character
+    - then the command-char follows (to identify the acknowledge)
+    - depending on the command, a numerical cmd-result or the requested value is sent
+    - values range 0/1 for bool, -9999...+9999 for INT and xx.yyy as FLOAT results
+    - because an INT is defined up to 9999, possible result-codes starting from 10000 (result OK)
+
+### implemented ProgMode commands
+|  Cmd    |function                       |returns (>= 10000 -> NOK) |
+|  -------|-------------------------------|------------------------------- |
+|  >m     | get magic number               | <m...   (< magic number >: all values are valid, no fault-codes!) |
+|  >n     | get number of parameters       | <n...   (< number of params >)|
+|  >p...  | parameter number set           | <p...   (PE_OK,PE_INVALID_PARAM)|
+|  >t     | get type of parameter          | <t...   (< type >: 0=bool,1=int,2=float or PE_INVALID_PARAM)|
+|  >d     | get description of parameter   | <d...   (< name of parameter > or PE_INVALID_PARAM)|
+|  >r     | read value                     | <r...   (< value > or PE_INVALID_PARAM) |
+|  >w...  | write value                    | <w...   (PE_OK, PE_INVALID_PARAM, PE_INVALID_VALUE "not in [-10000..+10000]")|
+|  >l     | load params from EEPROM        | <l10000 (PE_OK)|
+|  >s     | save params to EEPROM          | <s10000 (PE_OK)|
+|  >i     | invalidate magic number        | <i10000 (PE_OK)|
+|  >c     | clear EEPROM                   | <c10000 (PE_OK)|
+
+### Acknowledges (PE=ProgmodeError):
+  PE_OK                 10000
+  PE_INVALID_PARAM      10001
+  PE_INVALID_VALUE      10002
+  PE_VALUE_FAULT        10003
+  PE_CMD_FAULT          10004
+
+To work with a parameter, first you have to address the parameter with the 'p'-command. The following commands that work on parameters use the address set by the last 'p'-command
+### Example for ProgMode
+|  Cmd    | Ack                       |description |
+|  -------|-------------------------------|------------------------------- |
+|>p3   |  <p10000    | address parameter 3 -> result OK|
+|>t    |  <t1        | get type of parameter -> type is 1=INT|
+|>r    |  <r42       | read value -> parameter has value 42|
+
+
+### Suggested workflow
+|  Cmd    | Ack                       |description |
+|  -------|-------------------------------|------------------------------- |
+|  >m     |  ? |    if no acknowledge after 500ms, the SpaceMouse is not in base/debug-menu. | 
+
+We can try to send a 'q'-character followed by CR three times to get back in menu-system and send some (up to three) 'm'-commands afterwards to see, if we get in sync with the ProgMode 
+
+|  Cmd    | Ack                       |description |
+|  -------|-------------------------------|------------------------------- |
+|   >m    |    <m1964120905        |    magic number of EEPROM-data, identifies the data set-version. |
+
+Now we are connected and know about the version.  
+
+|  Cmd    | Ack                       |description |
+|  -------|-------------------------------|------------------------------- |
+| >n  |       <n33                   |  gets the number of parameters. |
+
+ Now we know about the number of parameters.
+
+Get all parameters with name, type and value:
+|  Cmd    | Ack                  | description |
+|  -------|----------------------|------------------------------- |
+|  >p1    |   <10000             |  adress parm 1 (ack: OK) |
+|  >d     |   <dDEADZONE         |  description=name of the parameter is "DEADZONE" |
+|  >t     |   <t1                |  parameter is of type 1 = INT |
+|  >r     |   <r16               |  parameter has the value 16 |
+| | | | 
+|  >p2     |  <10000                |  adress parm 2 (ack: OK) |
+|  >d      |  <dTRANSX_SENSITIVITY  |  description=name of the parameter is "TRANSX_SENSITIVITY" |
+|  >t      |  <t2                   |  parameter is of type 2 = FLOAT |
+|  >r      |   <r2.500              |  parameter has the value 2.5 |
+
+Repeat up to param nr.33
+
+Write a new value to a parameter on the device:
+|  Cmd    | Ack                    | description |
+|  -------|------------------------|------------------------------- |
+|  >p16   |   <p10000              |   adress param 16 (ack OK) |
+|  >w1    |   <w10000              |   value 1 written to the parameter 16 (ack OK) |
+
+Save all parameters to EEPROM as device bootup-configuration:
+|  Cmd    | Ack                    | description |
+|  -------|------------------------|------------------------------- |
+|  >s     |   <s10000              |   save parameters to EEPROM (ack OK) |
+
+With this workflow we are independent from the number and order of the parameters. A simple list-style programm would automaticaly grow, if the number of parameters grows.
+
+On the base/debug-menu you can manually test the ProgMode by simply typing in the ProgCmds  and you will see the acknowledges on your terminal.
+  
+ATTENTION: the manually typed in commands are executed and do their work! A `>c` with CR will really clear the EEPROM of the device!
 
 # See also
 
